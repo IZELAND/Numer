@@ -4,7 +4,10 @@ import { Input ,Typography , Button,Table } from 'antd';
 import {range, compile,evaluate,simplify,parse,abs} from 'mathjs'
 import createPlotlyComponent from 'react-plotlyjs'
 import Plotly from 'plotly.js/dist/plotly-cartesian'
-// import api from '../api'
+import axios from 'axios';
+
+var api;
+
 //import Title from 'antd/lib/skeleton/Title';
 var dataGraph = []
 const PlotlyComponent = createPlotlyComponent(Plotly)
@@ -21,16 +24,7 @@ const columns = [
     dataIndex: 'x1',
     key : 'x1'
   },
-  {
-    title: 'X2',
-    dataIndex: 'x2',
-    key: 'x2'
-  },
-  {
-    title: 'X0',
-    dataIndex: 'x0',
-    key :'x0'
-  },
+
   {
     title: 'Error',
     dataIndex: 'error',
@@ -55,19 +49,16 @@ class Secant extends Component
     this.onSubmit = this.onSubmit.bind(this);
   }
 
+  async dataapi() {
+    await axios({method: "get",url: "http://localhost:5000/database/secant",}).then((response) => {console.log("response: ", response.data);api = response.data;});
+    await this.setState({
+      fx:api.fx,
+      x1:api.x0,
+      x2:api.x1
+    })
+    this.onSubmit()
+  }
 
-//   componentDidMount = async() => { 
-//     await api.getFunctionByName("Secant").then(db => {
-//     this.setState({
-//         fx:db.data.data.fx,
-//         x2:db.data.data.xr,
-//         x1:db.data.data.xl,
-//     })
-//     console.log(this.state.fx);
-//     console.log(this.state.x0);
-//     console.log(this.state.x1);
-//     })
-//   }
   Graph(x1, x2)
   {
         dataGraph = [
@@ -159,7 +150,7 @@ class Secant extends Component
         
         
         console.log(data['x1']+" "+data['x2']);
-      }while(abs(xm-x0)>=error);
+      }while(error>=0.000001);
     }
     console.log(this.state);
     this.createTable(data['x1'], data['x2'], data['x0'], data['error']);
@@ -171,7 +162,7 @@ class Secant extends Component
     render(){
 
       let layout = {                     
-        title: 'Bisection',  
+        title: 'Secant',  
         xaxis: {                  
           title: 'X'         
         }
@@ -212,19 +203,17 @@ class Secant extends Component
               </h1>
               <br></br>
               
-              <Button type="submit" shape="round"  size={size}
+              <Button type="submit"   size={size}
               style={{ color:'#ffffff',background:'#0F60F8'}}
-              onClick={this.onSubmit}
-              >
-                Submit
+              onClick={()=>this.onSubmit()}>Submit
               </Button>
+
               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-              <Button type="submit" shape="round"  size={size}
+              <Button type="submit"   size={size}
               style={{ color:'#ffffff',background:'#14BE08'}}
-              onClick={this.onSubmit}
-              >
-                Function
+              onClick={()=>this.dataapi()}>Function
               </Button>
+
             </form>
 
             <div>
@@ -237,9 +226,9 @@ class Secant extends Component
     <br></br> x(i-1) = {this.state.x1} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; x(i) = {this.state.x2}
     <Table columns={columns} dataSource={dataTable} size="middle" /></h4></div>:''}
     
-    {this.state.showGrap === true ? 
+    {/* {this.state.showGrap === true ? 
         <PlotlyComponent  data={dataGraph} Layout={layout} config={config} /> : ''
-    }
+    } */}
     
     </div>
             

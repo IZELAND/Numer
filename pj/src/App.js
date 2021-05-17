@@ -17,7 +17,11 @@ import Baisection from './Root/Baisection';
 import Onepoint from './Root/Onepoint';
 import Newton from './Root/Newton';
 import Secant from './Root/Secant';
+import Cramerrule from './Linear/Cramerrule';
 import Lagrange from './Interpolation/Lagrange';
+import Jordan from './Linear/Jordan';
+import LU from './Linear/LU';
+import Jacobi from './Linear/Jacobi';
 
 const { SubMenu } = Menu;
 
@@ -30,6 +34,7 @@ class App extends React.Component {
     return (
       <Router>
         <Layout>
+          
         <Sider width = {256}>
         <Menu
           onClick={this.handleClick}
@@ -46,12 +51,12 @@ class App extends React.Component {
               <Menu.Item key="5">Secant<Link to="/Secant"></Link></Menu.Item>
           </SubMenu>
           <SubMenu key="sub2"  title="Linear eqaution">
-            <Menu.Item key="6">Cramer's rule</Menu.Item>
+            <Menu.Item key="6">Cramer's rule<Link to="/Cramerrule"></Link></Menu.Item>
             <Menu.Item key="7">Guass elimination</Menu.Item>
-            <Menu.Item key="8">Guass jordan</Menu.Item>
-            <Menu.Item key="9">LU</Menu.Item>
+            <Menu.Item key="8">Guass jordan<Link to="/Jordan"></Link></Menu.Item>
+            <Menu.Item key="9">LU<Link to="/LU"></Link></Menu.Item>
             <Menu.Item key="10">Cholesky</Menu.Item>
-            <Menu.Item key="11">Jacobi</Menu.Item>
+            <Menu.Item key="11">Jacobi<Link to="/Jacobi"></Link></Menu.Item>
             <Menu.Item key="12">Conjugate</Menu.Item>
           </SubMenu>
           <SubMenu key="sub3"  title="Interpolation">
@@ -73,6 +78,10 @@ class App extends React.Component {
           <Route path="/Onepoint" component={Onepoint}></Route>
           <Route path="/Newton" component={Newton}></Route>
           <Route path="/Secant" component={Secant}></Route>
+          <Route path="/Cramerrule" component={Cramerrule}></Route>
+          <Route path="/Jordan" component={Jordan}></Route>
+          <Route path="/LU" component={LU}></Route>
+          <Route path="/Jacobi" component={Jacobi}></Route>
           <Route path="/Lagrange" component={Lagrange}></Route>
           </Content>
         </Layout>

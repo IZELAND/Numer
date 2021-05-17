@@ -4,7 +4,10 @@ import {range, compile,evaluate,simplify,parse,abs} from 'mathjs'
 import createPlotlyComponent from 'react-plotlyjs'
 import Plotly from 'plotly.js/dist/plotly-cartesian'
 import ReactDOM from 'react-dom';
-// import api from '../api'
+import axios from 'axios';
+
+var api;
+
 //import Title from 'antd/lib/skeleton/Title';
 var dataGraph = []
 
@@ -55,19 +58,16 @@ class Falseposition extends Component
     this.onSubmit = this.onSubmit.bind(this);
   }
 
+  async dataapi() {
+    await axios({method: "get",url: "http://localhost:5000/database/falseposition",}).then((response) => {console.log("response: ", response.data);api = response.data;});
+    await this.setState({
+      fx:api.fx,
+      xl:api.xl,
+      xr:api.xr
+    })
+    this.onSubmit()
+  }
 
-//   componentDidMount = async() => { 
-//     await api.getFunctionByName("Bisection").then(db => {
-//     this.setState({
-//         fx:db.data.data.fx,
-//         xr:db.data.data.xr,
-//         xl:db.data.data.xl,
-//     })
-//     console.log(this.state.fx);
-//     console.log(this.state.xl);
-//     console.log(this.state.xr);
-//     })
-//   }
   Graph(xl, xr)
   {
         dataGraph = [
@@ -138,6 +138,7 @@ class Falseposition extends Component
     console.log("Fx ="+fx);
     console.log("XL ="+xl);
     console.log("XR ="+xr);
+    
     while(error>=0.000001){
       console.log("Iteration ="+i);
       console.log("XLก่อนเปลี่ยน ="+xl);
@@ -221,19 +222,17 @@ class Falseposition extends Component
               </h1>
               <br></br>
               
-              <Button type="submit" shape="round"  size={size}
+              <Button type="submit"  size={size}
               style={{ color:'#ffffff',background:'#0F60F8'}}
-              onClick={this.onSubmit}
-              >
-                Submit
+              onClick={()=>this.onSubmit()}>Submit
               </Button>
+
               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-              <Button type="submit" shape="round"  size={size}
+              <Button type="submit"   size={size}
               style={{ color:'#ffffff',background:'#14BE08'}}
-              onClick={this.onSubmit}
-              >
-                Function
+              onClick={()=>this.dataapi()}>Function
               </Button>
+
             </form>
 
             <div>

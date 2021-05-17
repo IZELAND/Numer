@@ -4,7 +4,9 @@ import { Input ,Typography , Button,Table } from 'antd';
 import {range, compile,evaluate,simplify,parse,abs,derivative} from 'mathjs'
 import createPlotlyComponent from 'react-plotlyjs'
 import Plotly from 'plotly.js/dist/plotly-cartesian'
-// import api from '../api'
+import axios from 'axios';
+
+var api;
 //import Title from 'antd/lib/skeleton/Title';
 var dataGraph = []
 const PlotlyComponent = createPlotlyComponent(Plotly)
@@ -41,7 +43,7 @@ class Onepoint extends Component
     this.state = {
       size: 'large',
     fx : "",
-    x1: 0,
+    x1 : 0,
     x2 : 0 ,
     x0 : 0,
     showTable:false
@@ -51,18 +53,15 @@ class Onepoint extends Component
   }
 
 
-//   componentDidMount = async() => { 
-//     await api.getFunctionByName("Onepoint").then(db => {
-//     this.setState({
-//         fx:db.data.data.fx,
-//         x1:db.data.data.x,
-       
-//     })
-//     console.log(this.state.fx);
-//     console.log(this.state.x0);
-//     console.log(this.state.x1);
-//     })
-//   }
+  async dataapi() {
+    await axios({method: "get",url: "http://localhost:5000/database/onepoint",}).then((response) => {console.log("response: ", response.data);api = response.data;});
+    await this.setState({
+      fx:api.fx,
+      x1:api.x0
+    })
+    this.onSubmit()
+  }
+
   Graph(x2)
   {
         dataGraph = [
@@ -177,27 +176,18 @@ class Onepoint extends Component
                     onChange={this.onInputChange}
                     />
                 </h1>
-                {/* <br></br>
-                <h1>XR : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    <Input size="large" placeholder="Input your Xr" name = "xr"style={{ width: 500 }}
-                    onChange={this.onInputChange}
-                    />
-                </h1>
-                <br></br> */}
-                
-                <Button type="submit" shape="round"  size={size}
+
+                <Button type="submit"  size={size}
                 style={{ color:'#ffffff',background:'#0F60F8'}}
-                onClick={this.onSubmit}
-                >
-                    Submit
+                onClick={()=>this.onSubmit()}>Submit
                 </Button>
+
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <Button type="submit" shape="round"  size={size}
+                <Button type="submit"  size={size}
                 style={{ color:'#ffffff',background:'#14BE08'}}
-                onClick={this.onSubmit}
-                >
-                    Function
+                onClick={()=>this.dataapi()}>Function
                 </Button>
+
             </form>
 
             <div>
@@ -207,7 +197,7 @@ class Onepoint extends Component
             <div>
             <h2 style = {{textAlign: 'center'}}>Table of Onepoint</h2>
             <h4 style = {{textAlign: 'center'}}> fx = {this.state.fx}
-            <br></br> xl = {this.state.xl} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; xr = {this.state.xr}
+            <br></br> x0 = {this.state.x1} 
             <Table columns={columns} dataSource={dataTable} size="middle" /></h4></div>:''}
             {this.state.showGrap == true ? 
                 <PlotlyComponent  data={dataGraph} Layout={layout} config={config} /> : ''

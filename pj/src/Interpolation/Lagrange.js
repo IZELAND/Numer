@@ -1,18 +1,17 @@
 import React, { Component } from 'react'
 import {Card, Input, Button, Table} from 'antd';
-
 import 'antd/dist/antd.css';
-const InputColor = {
-    background: "",
-    color: "#003a8c", 
+import axios from 'axios';
+
+var api;
+const InputStyle = {
+    background: "#1890ff",
+    color: "white", 
     fontWeight: "bold", 
-    fontSize: "24px",
-    width: 300 ,
-    height:50
-    
+    fontSize: "24px"
 
 };
-var table = [
+var columns = [
     {
       title: "No.",
       dataIndex: "no",
@@ -29,7 +28,7 @@ var table = [
         key: "y"
     }
 ];
-var x, y, schedul,  fx
+var x, y, tableTag,  interpolatePoint, tempTag, fx
 
 class Lagrange extends Component {
     
@@ -37,18 +36,16 @@ class Lagrange extends Component {
         super();
         x = []
         y = []
-        
-        schedul = []
+        interpolatePoint = []
+        tempTag = []
+        tableTag = []
         this.state = {
-            
+            nPoints: 0,
+            X: 0,
             interpolatePoint: 0,
-            showMatrix : true,
-            showButton: true,
-            showMatrixinput: false,
-            showMatrixButton: false,
-            showanswer: false,
-            Point: 0,
-            X: 0
+            showInputForm : true,
+            showTableInput: false,
+            showOutputCard: false
         }
         this.handleChange = this.handleChange.bind(this);
         this.lagrange = this.lagrange.bind(this);
@@ -57,28 +54,28 @@ class Lagrange extends Component {
     createTableInput(n) {
         for (var i=1 ; i<=n ; i++) {
             x.push(<Input style={{
-
                 width: "100%",
                 height: "50%", 
-                backgroundColor:"#003a8c", 
-                
+                backgroundColor:"black", 
+                marginInlineEnd: "5%", 
+                marginBlockEnd: "5%",
                 color: "white",
                 fontSize: "18px",
                 fontWeight: "bold"
             }}
             id={"x"+i} key={"x"+i} placeholder={"x"+i}/>);
             y.push(<Input style={{
-
                 width: "100%",
                 height: "50%", 
-                backgroundColor:"#003a8c", 
-                
+                backgroundColor:"black", 
+                marginInlineEnd: "5%", 
+                marginBlockEnd: "5%",
                 color: "white",
                 fontSize: "18px",
                 fontWeight: "bold"
             }} 
             id={"y"+i} key={"y"+i} placeholder={"y"+i}/>);   
-            schedul.push({
+            tableTag.push({
                 no: i,
                 x: x[i-1],
                 y: y[i-1]
@@ -87,110 +84,156 @@ class Lagrange extends Component {
 
 
         this.setState({
-            showMatrix : false,
-            showButton : false,
-            showMatrixinput : true,
-            showTableButton : true
+            showInputForm: false,
+            showTableInput: true,
         })
     }
-    
-    datainValue() {
+    createInterpolatePointInput(){
+        for (var i=1 ; i<=this.state.interpolatePoint ; i++) {
+            tempTag.push(<Input style={{
+                width: "14%",
+                height: "50%", 
+                backgroundColor:"black", 
+                marginInlineEnd: "5%", 
+                marginBlockEnd: "5%",
+                color: "white",
+                fontSize: "18px",
+                fontWeight: "bold"
+            }} 
+            id={"p"+i} key={"p"+i} placeholder={"p"+i} />)
+        }
+    }
+    initialValue() {
         x = []
         y = []
-        for (var i=1 ; i<=this.state.Point ; i++) {
+        for (var i=1 ; i<=this.state.nPoints ; i++) {
             x[i] = parseFloat(document.getElementById("x"+i).value);
             y[i] = parseFloat(document.getElementById("y"+i).value);
         }
+        for (i=1 ; i<=this.state.interpolatePoint ; i++) {
+            interpolatePoint[i] = parseFloat(document.getElementById("p"+i).value);
+        }
     }
-    llagrangeI(X, nn, n) {
-        var fraction1 = 1;
-        var fraction2 = 1;
-        for (var i=1 ; i<=n ; i++) {
-            if (i !== nn) {
-                fraction1 =fraction1 * (x[i]-X);
 
-                fraction2 = fraction2 *(x[i] - x[nn]);
+    L(X, index, n) {
+        var numerate = 1/*ตัวเศษ*/, denominate = 1/*ตัวส่วน*/;
+        for (var i=1 ; i<=n ; i++) {
+            if (i !== index) {
+                numerate *= x[i]-X;
+                denominate *= x[i] - x[index];
             }
         } 
-        
-        return parseFloat(fraction1/fraction2);
+        console.log(numerate/denominate)
+        return parseFloat(numerate/denominate);
     }
 
     lagrange(n, X) {
         fx = 0
-        this.datainValue()
+        this.initialValue()
         for (var i=1 ; i<=n ; i++) {
-            fx =fx + this.llagrangeI(X, i, n)*y[i];
+            fx += this.L(X, i, n)*y[i];
         }
         this.setState({
-            showanswer: true
+            showOutputCard: true
         })
 
     } 
-
 
     handleChange(event) {
         this.setState({
             [event.target.name]: event.target.value
         });
     }
+    async dataapi() {
+        await axios({
+          method: "get",
+          url: "http://localhost:5000/database/lagrange",
+        }).then((response) => {
+          console.log("response: ", response.data);
+          api = response.data;
+        });
+        await this.setState({
+            nPoints: api.nPoints,
+            X: api.X,
+            interpolatePoint: api.interpolateinput,
+        });
+        x = []
+        y = []
+        interpolatePoint = []
+        tempTag = []
+        tableTag = []
+        await this.createInterpolatePointInput();
+        await this.createTableInput(api.nPoints);
+        for (let i = 1; i <= api.nPoints; i++) {
+          document.getElementById("x" + i ).value = api.arrayX[i - 1];
+          document.getElementById("y" + i).value = api.arrayY[i - 1];
+        }
+        for (let i = 1; i <= api.interpolateinput; i++) {
+          document.getElementById("p" + i ).value = api.interpolatePoint[i - 1];
+        }
+        this.lagrange(parseInt(this.state.interpolatePoint), parseFloat(this.state.X));
+      }
 
     render() {
         return(
-            <body style={{ background: "#fff", padding: "90px" , float:"left"}}>
-                     <h2 style={{fontSize: "35px",textAlign:"center"}}>Lagrange</h2>
-                <div style={{textAlign:"center"}}>
-                        {this.state.showMatrixinput && 
-                        <div>
-                            <Table columns={table} dataSource={schedul} pagination={false} bordered={true} bodyStyle={{fontWeight: "bold", fontSize: "18px", color: "white" , overflowY: "scroll", minWidth: 120, maxHeight: 300}}></Table>
-                            
-                        </div>}
-                        
-                        {this.state.showMatrix && 
-                            <div>
-                                <h2>Number of points(n)</h2><Input size="large" name="Point" style={InputColor}></Input><br/><br/>
-                                <h2>X</h2><Input size="large" name="X" style={InputColor}></Input><br/><br/>
-                                <h2>interpolatePoint</h2><Input size="large" name="interpolatePoint" style={InputColor}></Input><br/>
-                            </div> 
-                        }
-                        <br></br>
-                        {this.state.showButton && 
-                            <Button id="dimention_button" shape="round" 
-                                onClick= {()=>{this.createTableInput(parseInt(this.state.Point));}}  
-                                style={{width: 100 , height:50, color:'#ffffff',background:'#0F60F8', fontSize: "25px"}}
-                                >GO
-                                </Button>
-                            
-                        }
-                        {this.state.showTableButton && 
-                            <Button id="matrix_button"  shape="round"
-                                onClick={()=>this.lagrange(parseInt(this.state.interpolatePoint), parseFloat(this.state.X))}
-                                style={{width: 150 , height:50,background: "#4caf50", color: "white", fontSize: "30px"}}
-                                >Submit
-                            </Button>
-                        }
-                        
-                    {/* </Card> */}
-                    
+            <div style={{ background: "#FFFF",padding: "30px" }}>
 
-                    {this.state.showanswer &&
-                        <Card
-                        title={"Output"}
-                        bordered={true}
-                        style={{width: 700 ,height:600, background: "#40a9ff", color: "#FFFFFFFF", float:"Auto"}}
-                        >
-                        <p style={{fontSize: "24px", fontWeight: "bold"}}>{fx}</p>
-                            
-                        </Card>                        
-                    }
+                <h1 style = {{textAlign: 'center',fontSize:'30px'}}>Lagrange Interpolation</h1>
 
-                   
+                <div className="row">
+                    <form style = {{textAlign: 'center',fontSize:'21px'}}>
+
+                            {this.state.showInputForm && 
+                                <div>
+                                    <h5>Number of points(n): <Input size="large" name="nPoints" style={{ width: 500 }}></Input></h5>
+                                    <h5>X: <Input size="large" name="X" style={{ width: 500 }}></Input></h5>
+                                    <h5>interpolatePoint: <Input size="large" name="interpolatePoint" style={{ width: 500 }}></Input></h5>
+
+                                    <Button id="dimention_button" size={'large'}
+                                        onClick= {()=>{this.createTableInput(parseInt(this.state.nPoints));this.createInterpolatePointInput()}}
+                                        style={{ background:'#0F60F8', color: "white" }}>Submit
+                                    </Button>
+
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <Button type="submit"   size="large"
+                                        onClick={() => this.dataapi()}
+                                        style={{ background:'#14BE08', color: "white" }}>Function
+                                    </Button>
+                                </div> 
+                            }
+                            {this.state.showTableInput && 
+                                <div>
+                                    <Table columns={columns} dataSource={tableTag} pagination={false} bordered={true} bodyStyle={{fontWeight: "bold", fontSize: "18px", color: "white" , overflowY: "scroll", minWidth: 120, maxHeight: 300}}></Table>
+                                    <br/><h2>interpolatePoint {parseInt(this.state.interpolatePoint) === 2 ? "(Linear)": 
+                                                            parseInt(this.state.interpolatePoint) === 3 ? "(Quadratic)" :
+                                                            "(Polynomial)"}</h2>{tempTag}
+                                    <Button 
+                                        id="matrix_button"  
+                                        style={{background: "blue", color: "white", fontSize: "20px"}}
+                                        onClick={()=>this.lagrange(parseInt(this.state.interpolatePoint), parseFloat(this.state.X))}>
+                                        Submit
+                                    </Button>
+                                    
+                                </div>
+                            }
+                    </form>
+
+                    <div className="col">
+                        {this.state.showOutputCard &&
+                            <Card
+                            title={"Output"}
+                            bordered={true}
+                            style={{ border: "2px solid black", background: "rgb(61, 104, 61) none repeat scroll 0% 0%", color: "white" }}
+                            >
+                                <p style={{fontSize: "24px", fontWeight: "bold"}}>{fx}</p>
+                            </Card>                        
+                        }                        
+                    </div>     
                 </div>
 
                 
-            </body>
+            </div>
         );
     }
 }
-
 export default Lagrange;
